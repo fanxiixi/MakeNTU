@@ -1,22 +1,21 @@
-// 載入環境變數和必需的模組
+// server.js
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
-const bcrypt = require('bcryptjs'); // 使用 bcryptjs 來避免跨平台編譯問題
+const bcrypt = require('bcryptjs'); // 使用 bcryptjs 避免跨平台編譯問題
 const jwt = require('jsonwebtoken');
 
 const app = express();
 
-// 中介軟體設定：CORS 與 JSON 解析
+// 中介軟體設定：啟用 CORS 與 JSON 解析
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// 靜態檔案設定：若你有放前端資源在 public 資料夾，可啟用下面這行
-// app.use(express.static(path.join(__dirname, 'public')));
-
-// 預設首頁路由，當使用者存取 "/" 時，回傳 index.html
+// 根路由—回傳首頁 (index.html)
+// 若你的 index.html 放在專案根目錄，這樣即可
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -39,7 +38,7 @@ app.post('/register', async (req, res) => {
     if (!username || !email || !password) {
       return res.status(400).json({ message: "缺少必要欄位" });
     }
-    // 檢查是否已有相同使用者或電子郵件
+    // 檢查是否已有使用者或電子郵件
     const [existing] = await pool.query(
       "SELECT * FROM users WHERE username = ? OR email = ?",
       [username, email]
@@ -47,8 +46,7 @@ app.post('/register', async (req, res) => {
     if (existing.length > 0) {
       return res.status(400).json({ message: "使用者或電子郵件已存在" });
     }
-
-    // 加密密碼，並寫入資料庫（balance 預設為 0，created_at 使用資料庫預設 CURRENT_TIMESTAMP）
+    // 加密密碼
     const hashedPassword = await bcrypt.hash(password, 10);
     await pool.query(
       "INSERT INTO users (username, email, password, balance) VALUES (?, ?, ?, 0)",
@@ -64,7 +62,7 @@ app.post('/register', async (req, res) => {
 // 登入 API
 app.post('/login', async (req, res) => {
   try {
-    const { identifier, password } = req.body; // identifier 可為 username 或 email
+    const { identifier, password } = req.body;  // identifier 可為 username 或 email
     if (!identifier || !password) {
       return res.status(400).json({ message: "缺少必要欄位" });
     }
@@ -89,7 +87,7 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// 驗證中介軟體：檢查使用者提供的 JWT 是否有效
+// 驗證中介軟體—檢查 JWT 是否有效
 const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ message: "缺少授權資訊" });
@@ -102,7 +100,7 @@ const authMiddleware = (req, res, next) => {
   });
 };
 
-// 會員資料 API：僅允許已登入使用者存取
+// 會員資料 API—只有登入使用者可以訪問
 app.get('/profile', authMiddleware, async (req, res) => {
   try {
     const [rows] = await pool.query(
