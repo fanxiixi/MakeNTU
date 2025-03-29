@@ -4,17 +4,89 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>會員資料</title>
+  <!-- 如果你有全站通用的 styles.css，可以保持連結 -->
   <link rel="stylesheet" href="styles.css">
+  <!-- 或者你也可以將頁面的 CSS 直接嵌入這裡 -->
+  <style>
+    /* 背景與基本字型 */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: linear-gradient(to right, #ff416c, #ff4b2b);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* 會員資料卡片 */
+    .profile-container {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      padding: 30px;
+      max-width: 600px;
+      width: 90%;
+      text-align: center;
+      animation: fadeInUp 0.5s ease-out;
+    }
+
+    .profile-container h1 {
+      color: #333;
+      font-size: 2em;
+      margin-bottom: 20px;
+    }
+
+    .profile-info p {
+      font-size: 1.2em;
+      margin: 10px 0;
+      color: #555;
+    }
+
+    .profile-info strong {
+      color: #333;
+    }
+
+    /* 登出按鈕 */
+    .logout-btn {
+      background-color: #ff4b2b;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      font-size: 1em;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.3s;
+      margin-top: 20px;
+    }
+
+    .logout-btn:hover {
+      background-color: #ff3a1a;
+      transform: scale(1.05);
+    }
+
+    /* 簡單的進入動效 */
+    @keyframes fadeInUp {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
 </head>
 <body>
   <div class="profile-container">
-    <h1>會員資料</h1>
-    <div id="profileInfo">
-      <p><strong>帳號名稱：</strong><span id="username"></span></p>
-      <p><strong>註冊時間：</strong><span id="createdAt"></span></p>
-      <p><strong>儲存金額：</strong><span id="balance"></span></p>
+    <h1>歡迎, <span id="username"></span></h1>
+    <div class="profile-info">
+      <p><strong>註冊時間：</strong> <span id="createdAt"></span></p>
+      <p><strong>儲存金額：</strong> <span id="balance"></span></p>
     </div>
-    <button id="logoutBtn">登出</button>
+    <button class="logout-btn" id="logoutBtn">登出</button>
   </div>
   <script src="profile.js"></script>
 </body>
