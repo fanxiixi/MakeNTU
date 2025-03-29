@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>動感註冊與登入</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- 主容器 -->
+  <div class="container" id="container">
+    <!-- 登入表單 -->
+    <div class="form-container sign-in-container">
+      <form id="loginForm" method="post">
+        <h1>登入</h1>
+        <input type="text" name="identifier" placeholder="使用者名稱或電子郵件" required>
+        <input type="password" name="password" placeholder="密碼" required>
+        <button type="submit">登入</button>
+      </form>
+    </div>
+    <!-- 註冊表單 -->
+    <div class="form-container sign-up-container">
+      <form id="registerForm" method="post">
+        <h1>建立帳號</h1>
+        <input type="text" name="username" placeholder="使用者名稱" required>
+        <input type="email" name="email" placeholder="電子郵件" required>
+        <input type="password" name="password" placeholder="密碼" required>
+        <button type="submit">註冊</button>
+      </form>
+    </div>
+    <!-- 覆蓋層 -->
+    <div class="overlay-container">
+      <div class="overlay">
+        <div class="overlay-panel overlay-left">
+          <h1>歡迎回來！</h1>
+          <p>若已有帳號，請點選下面按鈕登入！</p>
+          <button class="ghost" id="signIn">登入</button>
+        </div>
+        <div class="overlay-panel overlay-right">
+          <h1>你好，新朋友！</h1>
+          <p>還沒有帳號？請點選下面按鈕註冊！</p>
+          <button class="ghost" id="signUp">註冊</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 動感通知訊息區 -->
+  <div class="notification" id="notification"></div>
+  <script src="script.js"></script>
+</body>
+</html>
