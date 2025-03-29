@@ -3,53 +3,53 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>登入 / 註冊</title>
+  <title>硬幣儲值</title>
   <style>
     body {
       margin: 0;
       padding: 0;
-      background: #F4F4F9; /* 淡灰背景 */
+      background: linear-gradient(135deg, #1C1C1C, #323232);
       display: flex;
       align-items: center;
       justify-content: center;
       height: 100vh;
       font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-      color: #333;
+      color: #fff;
     }
     .container {
-      background: #fff;
+      background: #2D2D2D;
       border-radius: 8px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
       width: 400px;
       max-width: 90%;
       padding: 30px;
       text-align: center;
-      animation: fadeIn 0.8s ease-out;
+      animation: slideDown 0.8s ease-out;
     }
     h1 {
       margin-bottom: 20px;
       font-size: 1.8em;
-      color: #333;
+      color: #F0F0F0;
     }
     form {
       margin-bottom: 20px;
     }
     input {
       width: 100%;
-      padding: 10px;
+      padding: 12px;
       margin: 10px 0;
-      border: 1px solid #ccc;
+      border: none;
       border-radius: 4px;
       font-size: 1em;
       box-sizing: border-box;
     }
     button {
       width: 100%;
-      padding: 10px;
-      background: #4A90E2; /* 柔和藍 */
+      padding: 12px;
+      background: #4A90E2;
       border: none;
       color: #fff;
-      font-size: 1em;
+      font-size: 1.1em;
       border-radius: 4px;
       cursor: pointer;
       transition: background 0.3s, transform 0.3s;
@@ -59,20 +59,21 @@
       transform: translateY(-2px);
     }
     .toggle {
-      color: #007BFF;
+      color: #4A90E2;
       cursor: pointer;
       text-decoration: underline;
       margin-top: 10px;
+      font-size: 0.9em;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-20px); }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-30px); }
       to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1 id="form-title">登入</h1>
+    <h1 id="form-title">登入 - 硬幣儲值</h1>
     <!-- 登入表單 -->
     <form id="login-form" action="/login" method="POST">
       <input type="text" name="identifier" placeholder="使用者名稱或電子郵件" required>
@@ -90,22 +91,22 @@
   </div>
 
   <script>
-    // 切換表單顯示：登入 vs 註冊
+    // 切換表單顯示：登入與註冊
     const toggleForm = document.getElementById('toggleForm');
     const formTitle = document.getElementById('form-title');
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
 
-    toggleForm.addEventListener('click', () => {
+    toggleForm.addEventListener('click', function() {
       if (loginForm.style.display === 'none') {
         loginForm.style.display = 'block';
         registerForm.style.display = 'none';
-        formTitle.textContent = '登入';
+        formTitle.textContent = '登入 - 硬幣儲值';
         toggleForm.textContent = '還沒有帳號？點此註冊';
       } else {
         loginForm.style.display = 'none';
         registerForm.style.display = 'block';
-        formTitle.textContent = '註冊';
+        formTitle.textContent = '註冊 - 硬幣儲值';
         toggleForm.textContent = '已經有帳號？點此登入';
       }
     });

@@ -6,7 +6,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    const response = await fetch("http://localhost:3001/profile", {
+    // 使用相對路徑讓部署時自動對應正確網址
+    const response = await fetch("/profile", {
       method: "GET",
       headers: {
         "Authorization": "Bearer " + token
@@ -27,7 +28,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.location.href = "index.html";
   }
 
-  // 登出功能
+  // 設定登出按鈕
   const logoutBtn = document.getElementById("logoutBtn");
   logoutBtn.addEventListener("click", () => {
     localStorage.removeItem("token");
