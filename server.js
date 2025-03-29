@@ -4,29 +4,30 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const { Pool } = require('pg');
-const bcrypt = require('bcryptjs');  // 避免跨平台原生模組編譯問題
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const app = express();
 
-// 啟用中介軟體：CORS、JSON 與 URL-encoded 解析
+// 啟用中介軟體
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 根路由：回傳首頁 (index.html)
+// 根路由返回首頁
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// 建立 PostgreSQL 連線池（請確認環境變數已設定）
+// 建立 PostgreSQL 連線池（讀取環境變數中的連線資訊）
 const pool = new Pool({
   host: process.env.PG_HOST,
   user: process.env.PG_USER,
   password: process.env.PG_PASSWORD,
   database: process.env.PG_DATABASE,
-  port: process.env.PG_PORT || 5432
+  port: process.env.PG_PORT || 5432,
 });
+
 
 // 註冊 API
 app.post('/register', async (req, res) => {
@@ -118,7 +119,10 @@ app.get('/profile', authMiddleware, async (req, res) => {
   }
 });
 
-// 啟動伺服器
+// 以下為用戶註冊、登入與資料查詢相關 API
+// ⋯（請將之前的註冊、登入與 profile 相關程式碼貼上，使用的是 pg 模組，參數標記採用 $1, $2, …）
+
+// 啟動伺服器並監聽環境變數 PORT (Render 會自動設定)
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`伺服器運行中，Port：${PORT}`);
