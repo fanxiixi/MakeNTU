@@ -19,7 +19,7 @@
     .container {
       background: #fff;
       border-radius: 8px;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
       width: 400px;
       max-width: 90%;
       padding: 30px;
@@ -65,7 +65,7 @@
       margin-top: 10px;
     }
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
+      from { opacity: 0; transform: translateY(-20px); }
       to { opacity: 1; transform: translateY(0); }
     }
   </style>
@@ -90,7 +90,7 @@
   </div>
 
   <script>
-    // 切換顯示登入與註冊表單
+    // 切換表單顯示：登入 vs 註冊
     const toggleForm = document.getElementById('toggleForm');
     const formTitle = document.getElementById('form-title');
     const loginForm = document.getElementById('login-form');

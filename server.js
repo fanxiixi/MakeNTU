@@ -1,34 +1,31 @@
-// server.js
+// 載入環境變數與必要的模組
 require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
-const mysql = require('mysql2/promise');
-const bcrypt = require('bcryptjs'); // 使用 bcryptjs 避免跨平台編譯問題
+const { Pool } = require('pg');       // 使用 pg 模組來連接 PostgreSQL
+const bcrypt = require('bcryptjs');    // 使用 bcryptjs 來避免跨平台二進位編譯問題
 const jwt = require('jsonwebtoken');
 
 const app = express();
 
-// 中介軟體設定：啟用 CORS 與 JSON 解析
+// 中介軟體設定：啟用 CORS、JSON 與 URL-encoded 解析
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 根路由—回傳首頁 (index.html)
-// 若你的 index.html 放在專案根目錄，這樣即可
+// 根路由：當使用者存取 "/" 時回傳 index.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// 建立 MySQL 連線池
-const pool = mysql.createPool({
-  host: process.env.MYSQL_HOST,
-  user: process.env.MYSQL_USER,
-  password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DATABASE,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
+// 建立 PostgreSQL 連線池（請確認已在環境變數中設定 PG_HOST、PG_USER、PG_PASSWORD、PG_DATABASE，PORT 預設為 5432）
+const pool = new Pool({
+  host: process.env.PG_HOST,
+  user: process.env.PG_USER,
+  password: process.env.PG_PASSWORD,
+  database: process.env.PG_DATABASE,
+  port: process.env.PG_PORT || 5432
 });
 
 // 註冊 API
@@ -38,18 +35,19 @@ app.post('/register', async (req, res) => {
     if (!username || !email || !password) {
       return res.status(400).json({ message: "缺少必要欄位" });
     }
-    // 檢查是否已有使用者或電子郵件
-    const [existing] = await pool.query(
-      "SELECT * FROM users WHERE username = ? OR email = ?",
+    // 檢查是否已有相同使用者或電子郵件
+    const result = await pool.query(
+      "SELECT * FROM users WHERE username = $1 OR email = $2", 
       [username, email]
     );
-    if (existing.length > 0) {
+    if (result.rows.length > 0) {
       return res.status(400).json({ message: "使用者或電子郵件已存在" });
     }
-    // 加密密碼
+
+    // 加密密碼，並寫入資料庫（balance 預設為 0）
     const hashedPassword = await bcrypt.hash(password, 10);
     await pool.query(
-      "INSERT INTO users (username, email, password, balance) VALUES (?, ?, ?, 0)",
+      "INSERT INTO users (username, email, password, balance) VALUES ($1, $2, $3, 0)",
       [username, email, hashedPassword]
     );
     return res.status(200).json({ message: "註冊成功" });
@@ -66,14 +64,14 @@ app.post('/login', async (req, res) => {
     if (!identifier || !password) {
       return res.status(400).json({ message: "缺少必要欄位" });
     }
-    const [rows] = await pool.query(
-      "SELECT * FROM users WHERE username = ? OR email = ?",
+    const result = await pool.query(
+      "SELECT * FROM users WHERE username = $1 OR email = $2",
       [identifier, identifier]
     );
-    if (rows.length === 0) {
+    if (result.rows.length === 0) {
       return res.status(400).json({ message: "使用者不存在" });
     }
-    const user = rows[0];
+    const user = result.rows[0];
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
       return res.status(400).json({ message: "密碼錯誤" });
@@ -87,7 +85,7 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// 驗證中介軟體—檢查 JWT 是否有效
+// 驗證中介軟體：檢查 JWT 是否有效
 const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ message: "缺少授權資訊" });
@@ -100,17 +98,17 @@ const authMiddleware = (req, res, next) => {
   });
 };
 
-// 會員資料 API—只有登入使用者可以訪問
+// 會員資料 API：僅允許已登入使用者存取
 app.get('/profile', authMiddleware, async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      "SELECT username, balance, created_at FROM users WHERE id = ?",
+    const result = await pool.query(
+      "SELECT username, balance, created_at FROM users WHERE id = $1",
       [req.userId]
     );
-    if (rows.length === 0) {
+    if (result.rows.length === 0) {
       return res.status(404).json({ message: "使用者不存在" });
     }
-    return res.status(200).json(rows[0]);
+    return res.status(200).json(result.rows[0]);
   } catch (error) {
     console.error("Profile API Error:", error);
     return res.status(500).json({ message: "伺服器錯誤" });

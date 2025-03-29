@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.location.href = "index.html";
   }
 
-  // 登出功能設定
+  // 登出功能
   const logoutBtn = document.getElementById("logoutBtn");
   logoutBtn.addEventListener("click", () => {
     localStorage.removeItem("token");
