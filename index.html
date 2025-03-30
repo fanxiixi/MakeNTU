@@ -5,77 +5,76 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>登入 / 註冊 - 硬幣儲值</title>
   <style>
+    /* 背景採用柔和藍灰漸層 */
     body {
       margin: 0;
       padding: 0;
-      background: linear-gradient(135deg, #b71c1c, #e53935);
+      background: linear-gradient(135deg, #74ABE2, #5563DE);
       display: flex;
       align-items: center;
       justify-content: center;
       height: 100vh;
-      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-      color: #fff;
+      font-family: 'Roboto', sans-serif;
+      color: #333;
     }
     .container {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-      width: 400px;
-      max-width: 90%;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      width: 380px;
       padding: 30px;
       text-align: center;
-      animation: slideDown 0.8s ease-out;
-    }
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-30px); }
-      to { opacity: 1; transform: translateY(0); }
+      position: relative;
+      overflow: hidden;
     }
     h1 {
       margin-bottom: 20px;
       font-size: 1.8em;
+      color: #333;
     }
     form {
       margin-bottom: 20px;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 0.5s forwards;
       display: none;
-      animation: fadeIn 0.5s ease-out forwards;
     }
     form.active {
       display: block;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     input {
       width: 100%;
-      padding: 12px;
-      margin: 10px 0;
-      border: none;
-      border-radius: 4px;
+      padding: 10px;
+      margin: 12px 0;
+      border: 1px solid #ddd;
+      border-radius: 6px;
       font-size: 1em;
-      box-sizing: border-box;
     }
     button {
       width: 100%;
       padding: 12px;
-      background: #f44336;
+      background: #5563DE;
       border: none;
       color: #fff;
       font-size: 1.1em;
-      border-radius: 4px;
+      border-radius: 6px;
       cursor: pointer;
       transition: background 0.3s, transform 0.3s;
     }
     button:hover {
-      background: #d32f2f;
+      background: #3f4cb3;
       transform: translateY(-2px);
     }
     .toggle {
-      color: #ffab91;
+      color: #5563DE;
       cursor: pointer;
       text-decoration: underline;
       margin-top: 10px;
-      font-size: 0.9em;
+      font-size: 0.95em;
     }
   </style>
 </head>
@@ -106,13 +105,11 @@
 
     toggleForm.addEventListener('click', () => {
       if (loginForm.classList.contains('active')) {
-        // 切換到註冊表單
         loginForm.classList.remove('active');
         registerForm.classList.add('active');
         formTitle.textContent = '註冊 - 硬幣儲值';
         toggleForm.textContent = '已經有帳號？點此登入';
       } else {
-        // 切換回登入表單
         registerForm.classList.remove('active');
         loginForm.classList.add('active');
         formTitle.textContent = '登入 - 硬幣儲值';
@@ -120,7 +117,7 @@
       }
     });
 
-    // 使用 AJAX 提交登入表單
+    // AJAX 送出登入表單
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const identifier = loginForm.elements['identifier'].value;
@@ -144,7 +141,7 @@
       }
     });
 
-    // 使用 AJAX 提交註冊表單，成功後自動切換回登入表單
+    // AJAX 送出註冊表單，成功後延遲切換至登入表單
     registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const username = registerForm.elements['username'].value;
@@ -159,7 +156,6 @@
         const data = await res.json();
         if (res.ok) {
           alert('註冊成功！');
-          // 延遲後切換回登入表單
           setTimeout(() => {
             registerForm.classList.remove('active');
             loginForm.classList.add('active');

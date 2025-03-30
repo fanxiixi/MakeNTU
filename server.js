@@ -3,28 +3,34 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
-const mysql = require('mysql2/promise');
+const mysql = require('mysql2/promise'); // 使用 mysql2/promise 模組
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const app = express();
 
-// 啟用 CORS、JSON 與 URL-encoded 解析
+// 啟用 CORS、JSON 與 URL-encoded 處理
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 根路由：回傳 index.html
+// 根路由：回傳首頁 index.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// 專門的路由：回傳 profile.html
+// 方法2：專用路由回傳 profile.html
 app.get('/profile.html', (req, res) => {
+  console.log('GET /profile.html 路由觸發');
   res.sendFile(path.join(__dirname, 'profile.html'));
 });
 
-// 建立 MySQL 連線池（使用 .env 設定）
+// 專用路由回傳 profile.js
+app.get('/profile.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'profile.js'));
+});
+
+// 建立 MySQL 連線池
 const pool = mysql.createPool({
   host: process.env.MYSQL_HOST,
   port: process.env.MYSQL_PORT || 3306,
@@ -41,7 +47,7 @@ app.post('/register', async (req, res) => {
     if (!username || !email || !password) {
       return res.status(400).json({ message: "缺少必要欄位" });
     }
-    // 檢查是否已存在
+    // 查詢使用者是否存在
     const [existing] = await pool.query(
       "SELECT * FROM users WHERE username = ? OR email = ?",
       [username, email]
@@ -49,7 +55,7 @@ app.post('/register', async (req, res) => {
     if (existing.length > 0) {
       return res.status(400).json({ message: "使用者或電子郵件已存在" });
     }
-    // 加密密碼
+    // 加密密碼並新增使用者；balance 設為 0
     const hashedPassword = await bcrypt.hash(password, 10);
     await pool.query(
       "INSERT INTO users (username, email, password, balance) VALUES (?, ?, ?, 0)",
@@ -65,7 +71,7 @@ app.post('/register', async (req, res) => {
 // 登入 API
 app.post('/login', async (req, res) => {
   try {
-    const { identifier, password } = req.body;
+    const { identifier, password } = req.body; // identifier 可為 username 或 email
     if (!identifier || !password) {
       return res.status(400).json({ message: "缺少必要欄位" });
     }
@@ -90,7 +96,7 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// JWT 驗證中介軟體
+// JWT 驗證中介
 const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ message: "缺少授權資訊" });
@@ -103,7 +109,7 @@ const authMiddleware = (req, res, next) => {
   });
 };
 
-// 會員資料 API：返回 JSON 格式的會員資訊 (username、balance、created_at)
+// 會員資料 API：返回會員 username、balance 與 created_at
 app.get('/profile', authMiddleware, async (req, res) => {
   try {
     const [rows] = await pool.query(
