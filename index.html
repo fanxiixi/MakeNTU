@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>登入 / 註冊 - 硬幣儲值</title>
   <style>
+    /* 使用動感紅色主題 */
     body {
       margin: 0;
       padding: 0;
@@ -17,13 +18,15 @@
       color: #fff;
     }
     .container {
-      background: #c62828;
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 10px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
       width: 400px;
       max-width: 90%;
       padding: 30px;
       text-align: center;
+      position: relative;
+      overflow: hidden;
       animation: slideDown 0.8s ease-out;
     }
     @keyframes slideDown {
@@ -36,6 +39,18 @@
     }
     form {
       margin-bottom: 20px;
+      opacity: 0;
+      animation: fadeIn 0.5s ease-out forwards;
+    }
+    form:nth-of-type(1) { /* 登入表單動畫延遲 */
+      animation-delay: 0.4s;
+    }
+    form:nth-of-type(2) { /* 註冊表單動畫延遲 */
+      animation-delay: 0.4s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
     input {
       width: 100%;
@@ -67,20 +82,22 @@
       text-decoration: underline;
       margin-top: 10px;
       font-size: 0.9em;
+      animation: fadeIn 0.8s ease-out forwards;
+      animation-delay: 0.8s;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1 id="form-title">登入 - 硬幣儲值</h1>
-    <!-- 登入表單（採用 AJAX 提交） -->
+    <!-- 登入表單（使用 AJAX 提交） -->
     <form id="login-form">
       <input type="text" name="identifier" placeholder="使用者名稱或電子郵件" required>
       <input type="password" name="password" placeholder="密碼" required>
       <button type="submit">登入</button>
     </form>
     <!-- 註冊表單 -->
-    <form id="register-form" action="/register" method="POST" style="display: none;">
+    <form id="register-form" style="display: none;">
       <input type="text" name="username" placeholder="使用者名稱" required>
       <input type="email" name="email" placeholder="電子郵件" required>
       <input type="password" name="password" placeholder="密碼" required>
@@ -90,27 +107,29 @@
   </div>
 
   <script>
-    // 切換登入/註冊表單
+    // 切換登入與註冊表單
     const toggleForm = document.getElementById('toggleForm');
     const formTitle = document.getElementById('form-title');
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
 
     toggleForm.addEventListener('click', () => {
-      if (loginForm.style.display === 'none') {
-        loginForm.style.display = 'block';
-        registerForm.style.display = 'none';
-        formTitle.textContent = '登入 - 硬幣儲值';
-        toggleForm.textContent = '還沒有帳號？點此註冊';
-      } else {
+      if (loginForm.style.display !== 'none') {
+        // 切換到註冊表單
         loginForm.style.display = 'none';
         registerForm.style.display = 'block';
         formTitle.textContent = '註冊 - 硬幣儲值';
         toggleForm.textContent = '已經有帳號？點此登入';
+      } else {
+        // 切換到登入表單
+        registerForm.style.display = 'none';
+        loginForm.style.display = 'block';
+        formTitle.textContent = '登入 - 硬幣儲值';
+        toggleForm.textContent = '還沒有帳號？點此註冊';
       }
     });
 
-    // 使用 AJAX 處理登入表單提交
+    // 使用 AJAX 提交登入表單
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const identifier = loginForm.elements['identifier'].value;
@@ -126,13 +145,80 @@
           localStorage.setItem('token', data.token);
           window.location.href = 'profile.html';
         } else {
-          alert(data.message || '登入失敗');
+          showMessage(data.message || '登入失敗', 'error');
         }
       } catch (error) {
         console.error('登入錯誤：', error);
-        alert('伺服器錯誤，請稍後再試');
+        showMessage('伺服器錯誤，請稍後再試', 'error');
       }
     });
+
+    // 使用 AJAX 提交註冊表單，並在成功後顯示動畫提示自動切換到登入表單
+    registerForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = registerForm.elements['username'].value;
+      const email = registerForm.elements['email'].value;
+      const password = registerForm.elements['password'].value;
+      try {
+        const res = await fetch('/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          showMessage('註冊成功！', 'success');
+          // 註冊成功後延遲 1.5 秒切換回登入表單
+          setTimeout(() => {
+            registerForm.style.display = 'none';
+            loginForm.style.display = 'block';
+            formTitle.textContent = '登入 - 硬幣儲值';
+            toggleForm.textContent = '還沒有帳號？點此註冊';
+          }, 1500);
+        } else {
+          showMessage(data.message || '註冊失敗', 'error');
+        }
+      } catch (error) {
+        console.error('註冊錯誤：', error);
+        showMessage('伺服器錯誤，請稍後再試', 'error');
+      }
+    });
+
+    // 顯示動畫訊息
+    const messageDiv = document.createElement('div');
+    messageDiv.id = 'message';
+    messageDiv.style.position = 'absolute';
+    messageDiv.style.top = '-50px';
+    messageDiv.style.left = '0';
+    messageDiv.style.width = '100%';
+    messageDiv.style.textAlign = 'center';
+    messageDiv.style.fontSize = '1em';
+    messageDiv.style.padding = '10px';
+    messageDiv.style.opacity = '0';
+    // 將訊息區加入容器頂端
+    document.querySelector('.container').appendChild(messageDiv);
+
+    function showMessage(msg, type) {
+      messageDiv.textContent = msg;
+      messageDiv.style.color = (type === 'success') ? '#4CAF50' : '#ffc107';
+      messageDiv.style.animation = 'slideDownMsg 1s ease-out forwards';
+      // 當動畫結束後自動隱藏
+      setTimeout(() => {
+        messageDiv.style.animation = '';
+        messageDiv.style.opacity = '0';
+      }, 1500);
+    }
+
+    // 定義動畫 keyframes（用於訊息）
+    const styleElem = document.createElement('style');
+    styleElem.innerHTML = `
+      @keyframes slideDownMsg {
+        0% { opacity: 0; top: -50px; }
+        50% { opacity: 1; top: 0; }
+        100% { opacity: 0; top: -50px; }
+      }
+    `;
+    document.head.appendChild(styleElem);
   </script>
 </body>
 </html>
