@@ -16,8 +16,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (response.ok) {
       document.getElementById("username").textContent = data.username;
       document.getElementById("balance").textContent = data.balance;
-      document.getElementById("createdAt").textContent =
-        new Date(data.created_at).toLocaleString();
+      document.getElementById("createdAt").textContent = new Date(data.created_at).toLocaleString();
     } else {
       alert(data.message || "取得會員資料失敗");
       window.location.href = "index.html";

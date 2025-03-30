@@ -3,7 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
-const mysql = require('mysql2/promise'); // 使用 mysql2/promise 模組連線 MySQL
+const mysql = require('mysql2/promise');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -14,22 +14,21 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 根路由：回傳首頁 index.html
+// 根路由：回傳 index.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// 建立專門路由回傳 profile.html（方法2）
+// 專門的路由：回傳 profile.html
 app.get('/profile.html', (req, res) => {
-  console.log('GET /profile.html route hit');
   res.sendFile(path.join(__dirname, 'profile.html'));
 });
 
-// 建立 MySQL 連線池
+// 建立 MySQL 連線池（使用 .env 設定）
 const pool = mysql.createPool({
-  host: process.env.MYSQL_HOST,             // 例如 localhost (本地測試) 或你的雲端 MySQL
+  host: process.env.MYSQL_HOST,
   port: process.env.MYSQL_PORT || 3306,
-  user: process.env.MYSQL_USER,             // 例如 root
+  user: process.env.MYSQL_USER,
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE,
   connectionLimit: 10,
@@ -42,7 +41,7 @@ app.post('/register', async (req, res) => {
     if (!username || !email || !password) {
       return res.status(400).json({ message: "缺少必要欄位" });
     }
-    // 檢查是否已存在相同使用者或電子郵件
+    // 檢查是否已存在
     const [existing] = await pool.query(
       "SELECT * FROM users WHERE username = ? OR email = ?",
       [username, email]
@@ -50,23 +49,23 @@ app.post('/register', async (req, res) => {
     if (existing.length > 0) {
       return res.status(400).json({ message: "使用者或電子郵件已存在" });
     }
-    // 加密密碼並新增到資料庫；balance 預設為 0
+    // 加密密碼
     const hashedPassword = await bcrypt.hash(password, 10);
     await pool.query(
       "INSERT INTO users (username, email, password, balance) VALUES (?, ?, ?, 0)",
       [username, email, hashedPassword]
     );
-    return res.status(200).json({ message: "註冊成功" });
+    res.status(200).json({ message: "註冊成功" });
   } catch (error) {
     console.error("Register API Error:", error);
-    return res.status(500).json({ message: "伺服器錯誤" });
+    res.status(500).json({ message: "伺服器錯誤" });
   }
 });
 
 // 登入 API
 app.post('/login', async (req, res) => {
   try {
-    const { identifier, password } = req.body; // identifier 可為 username 或 email
+    const { identifier, password } = req.body;
     if (!identifier || !password) {
       return res.status(400).json({ message: "缺少必要欄位" });
     }
@@ -78,16 +77,16 @@ app.post('/login', async (req, res) => {
       return res.status(400).json({ message: "使用者不存在" });
     }
     const user = rows[0];
-    const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) {
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) {
       return res.status(400).json({ message: "密碼錯誤" });
     }
-    // 生成 JWT，效期為 1 小時；需要在 .env 中設定 JWT_SECRET
+    // 生成 JWT，有效期 1 小時
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-    return res.status(200).json({ message: "登入成功", token });
+    res.status(200).json({ message: "登入成功", token });
   } catch (error) {
     console.error("Login API Error:", error);
-    return res.status(500).json({ message: "伺服器錯誤" });
+    res.status(500).json({ message: "伺服器錯誤" });
   }
 });
 
@@ -104,7 +103,7 @@ const authMiddleware = (req, res, next) => {
   });
 };
 
-// 會員資料 API：返回 JSON 格式的會員資料 (包含 username、balance、created_at)
+// 會員資料 API：返回 JSON 格式的會員資訊 (username、balance、created_at)
 app.get('/profile', authMiddleware, async (req, res) => {
   try {
     const [rows] = await pool.query(
@@ -114,10 +113,10 @@ app.get('/profile', authMiddleware, async (req, res) => {
     if (rows.length === 0) {
       return res.status(404).json({ message: "使用者不存在" });
     }
-    return res.status(200).json(rows[0]);
+    res.status(200).json(rows[0]);
   } catch (error) {
     console.error("Profile API Error:", error);
-    return res.status(500).json({ message: "伺服器錯誤" });
+    res.status(500).json({ message: "伺服器錯誤" });
   }
 });
 
