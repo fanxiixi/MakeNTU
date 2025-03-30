@@ -3,25 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>登入 / 註冊 - 硬幣儲值</title>
+  <title>會員登入/註冊 - 硬幣儲值</title>
   <style>
-    /* 背景採用柔和藍灰漸層 */
+    /* 藍綠漸層背景 */
     body {
       margin: 0;
       padding: 0;
-      background: linear-gradient(135deg, #74ABE2, #5563DE);
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
       display: flex;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       height: 100vh;
       font-family: 'Roboto', sans-serif;
-      color: #333;
     }
     .container {
-      background: #fff;
+      background: #ffffff;
       border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-      width: 380px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      width: 360px;
       padding: 30px;
       text-align: center;
       position: relative;
@@ -30,34 +29,33 @@
     h1 {
       margin-bottom: 20px;
       font-size: 1.8em;
-      color: #333;
+      color: #333333;
     }
     form {
-      margin-bottom: 20px;
-      opacity: 0;
-      transform: translateY(20px);
-      animation: fadeInUp 0.5s forwards;
       display: none;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: fadeInUp 0.5s forwards;
     }
     form.active {
       display: block;
     }
     @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
     input {
       width: 100%;
       padding: 10px;
       margin: 12px 0;
+      font-size: 1em;
       border: 1px solid #ddd;
       border-radius: 6px;
-      font-size: 1em;
     }
     button {
       width: 100%;
-      padding: 12px;
-      background: #5563DE;
+      padding: 10px;
+      background: #00bcd4;
       border: none;
       color: #fff;
       font-size: 1.1em;
@@ -66,14 +64,14 @@
       transition: background 0.3s, transform 0.3s;
     }
     button:hover {
-      background: #3f4cb3;
+      background: #0097a7;
       transform: translateY(-2px);
     }
     .toggle {
-      color: #5563DE;
+      margin-top: 15px;
+      color: #00a2b5;
       cursor: pointer;
       text-decoration: underline;
-      margin-top: 10px;
       font-size: 0.95em;
     }
   </style>
@@ -141,7 +139,7 @@
       }
     });
 
-    // AJAX 送出註冊表單，成功後延遲切換至登入表單
+    // AJAX 送出註冊表單，成功後延遲切換回登入表單
     registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const username = registerForm.elements['username'].value;

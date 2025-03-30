@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const token = localStorage.getItem("token");
   if (!token) {
-    window.location.href = "index.html";
+    window.location.href = "/";
     return;
   }
 
@@ -19,17 +19,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("createdAt").textContent = new Date(data.created_at).toLocaleString();
     } else {
       alert(data.message || "取得會員資料失敗");
-      window.location.href = "index.html";
+      window.location.href = "/";
     }
   } catch (error) {
     console.error("取得會員資料時發生錯誤:", error);
     alert("伺服器錯誤，請稍後再試");
-    window.location.href = "index.html";
+    window.location.href = "/";
   }
 
   const logoutBtn = document.getElementById("logoutBtn");
   logoutBtn.addEventListener("click", () => {
     localStorage.removeItem("token");
-    window.location.href = "index.html";
+    window.location.href = "/";
   });
 });
