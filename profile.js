@@ -6,7 +6,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    // 使用相對路徑呼叫 API，這樣部署時會自動使用正確域名
     const response = await fetch("/profile", {
       method: "GET",
       headers: {

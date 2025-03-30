@@ -75,7 +75,7 @@
   <div class="container">
     <h1 id="form-title">登入 - 硬幣儲值</h1>
     <!-- 登入表單 -->
-    <form id="login-form" action="/login" method="POST">
+    <form id="login-form">
       <input type="text" name="identifier" placeholder="使用者名稱或電子郵件" required>
       <input type="password" name="password" placeholder="密碼" required>
       <button type="submit">登入</button>
@@ -91,12 +91,12 @@
   </div>
 
   <script>
-    // 切換表單顯示：登入 vs 註冊
+    // 切換表單顯示：登入與註冊
     const toggleForm = document.getElementById('toggleForm');
     const formTitle = document.getElementById('form-title');
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
-
+    
     toggleForm.addEventListener('click', () => {
       if (loginForm.style.display === 'none') {
         loginForm.style.display = 'block';
@@ -108,6 +108,32 @@
         registerForm.style.display = 'block';
         formTitle.textContent = '註冊 - 硬幣儲值';
         toggleForm.textContent = '已經有帳號？點此登入';
+      }
+    });
+
+    // 改用 AJAX 處理登入表單提交，不直接讓表單提交
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();  // 防止表單預設提交行為
+      const identifier = loginForm.elements['identifier'].value;
+      const password = loginForm.elements['password'].value;
+
+      try {
+        const res = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, password })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          // 儲存 token 並跳轉到會員資料頁面
+          localStorage.setItem('token', data.token);
+          window.location.href = 'profile.html';
+        } else {
+          alert(data.message || '登入失敗');
+        }
+      } catch (error) {
+        console.error('登入出錯：', error);
+        alert('伺服器錯誤，請稍後再試');
       }
     });
   </script>

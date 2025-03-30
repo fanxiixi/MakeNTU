@@ -3,7 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
-const mysql = require('mysql2/promise'); // 使用 mysql2/promise 連線 MySQL
+const mysql = require('mysql2/promise'); // 使用 mysql2/promise 模組
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -14,16 +14,16 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 根路由：回傳首頁 (index.html)
+// 根路由：回傳首頁（index.html）
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// 建立 MySQL 資料庫連線池
+// 建立 MySQL 連線池
 const pool = mysql.createPool({
-  host: process.env.MYSQL_HOST,      // 例如：localhost 或 Render 提供的外部 MySQL 主機
+  host: process.env.MYSQL_HOST,       // 例如：localhost (本地測試) 或你的雲端 MySQL 主機
   port: process.env.MYSQL_PORT || 3306,
-  user: process.env.MYSQL_USER,      // 例如：root 或 Render 提供的帳號
+  user: process.env.MYSQL_USER,       // 例如：root 或你設定的使用者
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE,
   connectionLimit: 10,
@@ -60,7 +60,7 @@ app.post('/register', async (req, res) => {
 // 登入 API
 app.post('/login', async (req, res) => {
   try {
-    const { identifier, password } = req.body; // identifier 可為 username 或 email
+    const { identifier, password } = req.body; // identifier 為 username 或 email
     if (!identifier || !password) {
       return res.status(400).json({ message: "缺少必要欄位" });
     }
@@ -76,7 +76,7 @@ app.post('/login', async (req, res) => {
     if (!isValid) {
       return res.status(400).json({ message: "密碼錯誤" });
     }
-    // 生成 JWT，有效期 1 小時；JWT_SECRET 需在環境變數中設置
+    // 生成 JWT，效期 1 小時
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
     return res.status(200).json({ message: "登入成功", token });
   } catch (error) {
@@ -115,7 +115,6 @@ app.get('/profile', authMiddleware, async (req, res) => {
   }
 });
 
-// 啟動伺服器
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`伺服器運行中，Port：${PORT}`);
