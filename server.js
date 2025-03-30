@@ -3,31 +3,31 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
-const { Pool } = require('pg');
+const mysql = require('mysql2/promise'); // 使用 mysql2/promise 連線 MySQL
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const app = express();
 
-// 啟用中介軟體
+// 啟用 CORS、JSON 解析與 URL-encoded 解析
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 根路由返回首頁
+// 根路由：回傳首頁 (index.html)
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// 建立 PostgreSQL 連線池（讀取環境變數中的連線資訊）
-const pool = new Pool({
-  host: process.env.PG_HOST,
-  user: process.env.PG_USER,
-  password: process.env.PG_PASSWORD,
-  database: process.env.PG_DATABASE,
-  port: process.env.PG_PORT || 5432,
+// 建立 MySQL 資料庫連線池
+const pool = mysql.createPool({
+  host: process.env.MYSQL_HOST,      // 例如：localhost 或 Render 提供的外部 MySQL 主機
+  port: process.env.MYSQL_PORT || 3306,
+  user: process.env.MYSQL_USER,      // 例如：root 或 Render 提供的帳號
+  password: process.env.MYSQL_PASSWORD,
+  database: process.env.MYSQL_DATABASE,
+  connectionLimit: 10,
 });
-
 
 // 註冊 API
 app.post('/register', async (req, res) => {
@@ -36,20 +36,18 @@ app.post('/register', async (req, res) => {
     if (!username || !email || !password) {
       return res.status(400).json({ message: "缺少必要欄位" });
     }
-
-    // 檢查是否已有相同使用者或電子郵件
-    const existing = await pool.query(
-      "SELECT * FROM users WHERE username = $1 OR email = $2",
+    // 檢查是否已存在使用者或電子郵件
+    const [existing] = await pool.query(
+      "SELECT * FROM users WHERE username = ? OR email = ?",
       [username, email]
     );
-    if (existing.rows.length > 0) {
+    if (existing.length > 0) {
       return res.status(400).json({ message: "使用者或電子郵件已存在" });
     }
-
-    // 加密密碼並寫入資料庫（balance 預設為 0）
+    // 加密密碼，並新增到資料庫；balance 預設 0
     const hashedPassword = await bcrypt.hash(password, 10);
     await pool.query(
-      "INSERT INTO users (username, email, password, balance) VALUES ($1, $2, $3, 0)",
+      "INSERT INTO users (username, email, password, balance) VALUES (?, ?, ?, 0)",
       [username, email, hashedPassword]
     );
     return res.status(200).json({ message: "註冊成功" });
@@ -62,25 +60,23 @@ app.post('/register', async (req, res) => {
 // 登入 API
 app.post('/login', async (req, res) => {
   try {
-    const { identifier, password } = req.body;  // identifier 為 username 或 email
+    const { identifier, password } = req.body; // identifier 可為 username 或 email
     if (!identifier || !password) {
       return res.status(400).json({ message: "缺少必要欄位" });
     }
-
-    const result = await pool.query(
-      "SELECT * FROM users WHERE username = $1 OR email = $2",
+    const [rows] = await pool.query(
+      "SELECT * FROM users WHERE username = ? OR email = ?",
       [identifier, identifier]
     );
-    if (result.rows.length === 0) {
+    if (rows.length === 0) {
       return res.status(400).json({ message: "使用者不存在" });
     }
-    const user = result.rows[0];
+    const user = rows[0];
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
       return res.status(400).json({ message: "密碼錯誤" });
     }
-
-    // 生成 JWT，效期 1 小時
+    // 生成 JWT，有效期 1 小時；JWT_SECRET 需在環境變數中設置
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
     return res.status(200).json({ message: "登入成功", token });
   } catch (error) {
@@ -105,24 +101,21 @@ const authMiddleware = (req, res, next) => {
 // 會員資料 API
 app.get('/profile', authMiddleware, async (req, res) => {
   try {
-    const result = await pool.query(
-      "SELECT username, balance, created_at FROM users WHERE id = $1",
+    const [rows] = await pool.query(
+      "SELECT username, balance, created_at FROM users WHERE id = ?",
       [req.userId]
     );
-    if (result.rows.length === 0) {
+    if (rows.length === 0) {
       return res.status(404).json({ message: "使用者不存在" });
     }
-    return res.status(200).json(result.rows[0]);
+    return res.status(200).json(rows[0]);
   } catch (error) {
     console.error("Profile API Error:", error);
     return res.status(500).json({ message: "伺服器錯誤" });
   }
 });
 
-// 以下為用戶註冊、登入與資料查詢相關 API
-// ⋯（請將之前的註冊、登入與 profile 相關程式碼貼上，使用的是 pg 模組，參數標記採用 $1, $2, …）
-
-// 啟動伺服器並監聽環境變數 PORT (Render 會自動設定)
+// 啟動伺服器
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`伺服器運行中，Port：${PORT}`);

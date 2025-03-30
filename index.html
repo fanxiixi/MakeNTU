@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>硬幣儲值</title>
+  <title>登入 / 註冊 - 硬幣儲值</title>
   <style>
     body {
       margin: 0;
@@ -91,13 +91,13 @@
   </div>
 
   <script>
-    // 切換表單顯示：登入與註冊
+    // 切換表單顯示：登入 vs 註冊
     const toggleForm = document.getElementById('toggleForm');
     const formTitle = document.getElementById('form-title');
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
 
-    toggleForm.addEventListener('click', function() {
+    toggleForm.addEventListener('click', () => {
       if (loginForm.style.display === 'none') {
         loginForm.style.display = 'block';
         registerForm.style.display = 'none';

@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   try {
-    // 使用相對路徑讓部署時自動對應正確網址
+    // 使用相對路徑呼叫 API，這樣部署時會自動使用正確域名
     const response = await fetch("/profile", {
       method: "GET",
       headers: {
@@ -28,7 +28,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     window.location.href = "index.html";
   }
 
-  // 設定登出按鈕
   const logoutBtn = document.getElementById("logoutBtn");
   logoutBtn.addEventListener("click", () => {
     localStorage.removeItem("token");
