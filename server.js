@@ -3,7 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
-const mysql = require('mysql2/promise'); // 使用 mysql2/promise 模組
+const mysql = require('mysql2/promise'); // 使用 mysql2/promise 模組連線 MySQL
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -14,16 +14,23 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 根路由：回傳首頁（index.html）
+// 根路由：回傳 index.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// 建立 MySQL 連線池
+// 方法 2：建立一個路由回傳 profile.html
+app.get('/profile.html', (req, res) => {
+  // 可加上除錯 log
+  console.log('GET /profile.html route hit');
+  res.sendFile(path.join(__dirname, 'profile.html'));
+});
+
+// 建立 MySQL 連線池（從環境變數讀取資料庫連線資訊）
 const pool = mysql.createPool({
-  host: process.env.MYSQL_HOST,       // 例如：localhost (本地測試) 或你的雲端 MySQL 主機
+  host: process.env.MYSQL_HOST,
   port: process.env.MYSQL_PORT || 3306,
-  user: process.env.MYSQL_USER,       // 例如：root 或你設定的使用者
+  user: process.env.MYSQL_USER,
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE,
   connectionLimit: 10,
@@ -36,7 +43,7 @@ app.post('/register', async (req, res) => {
     if (!username || !email || !password) {
       return res.status(400).json({ message: "缺少必要欄位" });
     }
-    // 檢查是否已存在使用者或電子郵件
+    // 檢查是否已有使用者或電子郵件
     const [existing] = await pool.query(
       "SELECT * FROM users WHERE username = ? OR email = ?",
       [username, email]
@@ -44,7 +51,7 @@ app.post('/register', async (req, res) => {
     if (existing.length > 0) {
       return res.status(400).json({ message: "使用者或電子郵件已存在" });
     }
-    // 加密密碼，並新增到資料庫；balance 預設 0
+    // 加密密碼並新增到資料庫；balance 預設 0
     const hashedPassword = await bcrypt.hash(password, 10);
     await pool.query(
       "INSERT INTO users (username, email, password, balance) VALUES (?, ?, ?, 0)",
@@ -60,7 +67,7 @@ app.post('/register', async (req, res) => {
 // 登入 API
 app.post('/login', async (req, res) => {
   try {
-    const { identifier, password } = req.body; // identifier 為 username 或 email
+    const { identifier, password } = req.body; // identifier 可為 username 或 email
     if (!identifier || !password) {
       return res.status(400).json({ message: "缺少必要欄位" });
     }
@@ -76,7 +83,7 @@ app.post('/login', async (req, res) => {
     if (!isValid) {
       return res.status(400).json({ message: "密碼錯誤" });
     }
-    // 生成 JWT，效期 1 小時
+    // 生成 JWT，有效期 1 小時；JWT_SECRET 必須在 .env 中設定
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
     return res.status(200).json({ message: "登入成功", token });
   } catch (error) {
