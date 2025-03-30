@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>登入 / 註冊 - 硬幣儲值</title>
   <style>
-    /* 使用動感紅色主題 */
+    /* 紅色背景與動感樣式 */
     body {
       margin: 0;
       padding: 0;
@@ -42,10 +42,10 @@
       opacity: 0;
       animation: fadeIn 0.5s ease-out forwards;
     }
-    form:nth-of-type(1) { /* 登入表單動畫延遲 */
+    form:nth-of-type(1) { /* 登入表單 */
       animation-delay: 0.4s;
     }
-    form:nth-of-type(2) { /* 註冊表單動畫延遲 */
+    form:nth-of-type(2) { /* 註冊表單 */
       animation-delay: 0.4s;
     }
     @keyframes fadeIn {
@@ -85,12 +85,29 @@
       animation: fadeIn 0.8s ease-out forwards;
       animation-delay: 0.8s;
     }
+    /* 訊息動畫區 */
+    .message {
+      position: absolute;
+      top: -50px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      font-size: 1em;
+      padding: 10px;
+      opacity: 0;
+    }
+    @keyframes slideDownMsg {
+      0% { opacity: 0; top: -50px; }
+      50% { opacity: 1; top: 0; }
+      100% { opacity: 0; top: -50px; }
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1 id="form-title">登入 - 硬幣儲值</h1>
-    <!-- 登入表單（使用 AJAX 提交） -->
+    <div id="message" class="message"></div>
+    <!-- 登入表單 -->
     <form id="login-form">
       <input type="text" name="identifier" placeholder="使用者名稱或電子郵件" required>
       <input type="password" name="password" placeholder="密碼" required>
@@ -107,11 +124,11 @@
   </div>
 
   <script>
-    // 切換登入與註冊表單
     const toggleForm = document.getElementById('toggleForm');
     const formTitle = document.getElementById('form-title');
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
+    const messageDiv = document.getElementById('message');
 
     toggleForm.addEventListener('click', () => {
       if (loginForm.style.display !== 'none') {
@@ -129,7 +146,7 @@
       }
     });
 
-    // 使用 AJAX 提交登入表單
+    // AJAX 送出登入表單
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const identifier = loginForm.elements['identifier'].value;
@@ -153,7 +170,7 @@
       }
     });
 
-    // 使用 AJAX 提交註冊表單，並在成功後顯示動畫提示自動切換到登入表單
+    // AJAX 送出註冊表單，成功後動畫提示，並自動切換回登入
     registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const username = registerForm.elements['username'].value;
@@ -168,7 +185,7 @@
         const data = await res.json();
         if (res.ok) {
           showMessage('註冊成功！', 'success');
-          // 註冊成功後延遲 1.5 秒切換回登入表單
+          // 註冊成功後延遲 1.5 秒切換到登入表單
           setTimeout(() => {
             registerForm.style.display = 'none';
             loginForm.style.display = 'block';
@@ -184,32 +201,17 @@
       }
     });
 
-    // 顯示動畫訊息
-    const messageDiv = document.createElement('div');
-    messageDiv.id = 'message';
-    messageDiv.style.position = 'absolute';
-    messageDiv.style.top = '-50px';
-    messageDiv.style.left = '0';
-    messageDiv.style.width = '100%';
-    messageDiv.style.textAlign = 'center';
-    messageDiv.style.fontSize = '1em';
-    messageDiv.style.padding = '10px';
-    messageDiv.style.opacity = '0';
-    // 將訊息區加入容器頂端
-    document.querySelector('.container').appendChild(messageDiv);
-
     function showMessage(msg, type) {
       messageDiv.textContent = msg;
       messageDiv.style.color = (type === 'success') ? '#4CAF50' : '#ffc107';
       messageDiv.style.animation = 'slideDownMsg 1s ease-out forwards';
-      // 當動畫結束後自動隱藏
       setTimeout(() => {
         messageDiv.style.animation = '';
         messageDiv.style.opacity = '0';
       }, 1500);
     }
 
-    // 定義動畫 keyframes（用於訊息）
+    // 插入訊息動畫的 keyframes
     const styleElem = document.createElement('style');
     styleElem.innerHTML = `
       @keyframes slideDownMsg {
