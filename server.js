@@ -3,13 +3,13 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
-const mysql = require('mysql2/promise');
+const mysql = require('mysql2/promise'); // 使用 mysql2/promise 模組連線 MySQL
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const app = express();
 
-// 啟用 CORS 與解析 JSON / URL-encoded 資料
+// 啟用 CORS、JSON 與 URL-encoded 處理
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -19,10 +19,21 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// 新增路由：當請求 /index.html 時回傳 index.html（避免404）
+app.get('/index.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 // 專用路由：回傳 profile.html
 app.get('/profile.html', (req, res) => {
+  console.log('GET /profile.html 路由觸發');
   res.sendFile(path.join(__dirname, 'profile.html'));
 });
+
+// 若有使用 profile.js 但不在同一資料夾可加入此路由 (選用)
+// app.get('/profile.js', (req, res) => {
+//   res.sendFile(path.join(__dirname, 'profile.js'));
+// });
 
 // 建立 MySQL 連線池
 const pool = mysql.createPool({
@@ -41,7 +52,7 @@ app.post('/register', async (req, res) => {
     if (!username || !email || !password) {
       return res.status(400).json({ message: "請填寫所有必要欄位" });
     }
-    // 檢查使用者是否已存在
+    // 檢查是否已有相同使用者或電子郵件
     const [existing] = await pool.query(
       "SELECT * FROM users WHERE username = ? OR email = ?",
       [username, email]
@@ -49,7 +60,7 @@ app.post('/register', async (req, res) => {
     if (existing.length > 0) {
       return res.status(400).json({ message: "使用者或電子郵件已存在" });
     }
-    // 加密密碼並新增使用者
+    // 加密密碼並新增使用者，balance 預設為 0
     const hashedPassword = await bcrypt.hash(password, 10);
     await pool.query(
       "INSERT INTO users (username, email, password, balance) VALUES (?, ?, ?, 0)",
@@ -65,7 +76,7 @@ app.post('/register', async (req, res) => {
 // 登入 API
 app.post('/login', async (req, res) => {
   try {
-    const { identifier, password } = req.body; // identifier 為 username 或 email
+    const { identifier, password } = req.body; // identifier 可為 username 或 email
     if (!identifier || !password) {
       return res.status(400).json({ message: "請填寫所有必要欄位" });
     }
@@ -81,7 +92,7 @@ app.post('/login', async (req, res) => {
     if (!valid) {
       return res.status(400).json({ message: "密碼錯誤" });
     }
-    // 生成 JWT，效期 1 小時
+    // 生成 JWT，效期 1 小時（JWT_SECRET 請在 .env 中正確設定）
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.status(200).json({ message: "登入成功", token });
   } catch (error) {
@@ -90,7 +101,7 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// JWT 驗證中介軟體
+// JWT 驗證中介
 const authMiddleware = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) return res.status(401).json({ message: "請提供授權資訊" });
@@ -103,7 +114,7 @@ const authMiddleware = (req, res, next) => {
   });
 };
 
-// 會員資料 API：返回會員的 username、balance 與註冊時間 (created_at)
+// 會員資料 API：返回會員 username、balance 與 created_at
 app.get('/profile', authMiddleware, async (req, res) => {
   try {
     const [rows] = await pool.query(

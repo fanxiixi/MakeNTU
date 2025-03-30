@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>會員登入/註冊 - 硬幣儲值</title>
   <style>
-    /* 藍綠漸層背景 */
+    /* 採用現代藍綠漸層背景 */
     body {
       margin: 0;
       padding: 0;
@@ -29,7 +29,7 @@
     h1 {
       margin-bottom: 20px;
       font-size: 1.8em;
-      color: #333333;
+      color: #333;
     }
     form {
       display: none;
@@ -42,15 +42,15 @@
     }
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(30px); }
-      to   { opacity: 1; transform: translateY(0); }
+      to { opacity: 1; transform: translateY(0); }
     }
     input {
       width: 100%;
       padding: 10px;
       margin: 12px 0;
-      font-size: 1em;
       border: 1px solid #ddd;
       border-radius: 6px;
+      font-size: 1em;
     }
     button {
       width: 100%;
@@ -69,7 +69,7 @@
     }
     .toggle {
       margin-top: 15px;
-      color: #00a2b5;
+      color: #00796b;
       cursor: pointer;
       text-decoration: underline;
       font-size: 0.95em;
@@ -139,7 +139,7 @@
       }
     });
 
-    // AJAX 送出註冊表單，成功後延遲切換回登入表單
+    // AJAX 送出註冊表單
     registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const username = registerForm.elements['username'].value;
